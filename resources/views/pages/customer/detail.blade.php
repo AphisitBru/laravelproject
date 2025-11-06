@@ -161,7 +161,8 @@
     const customerDetail = [
         {id : 1 , cardID : "cus001" , name : "Foke" , tel : "+66 0123456789" , gen : "male"},
         {id : 2 , cardID : "cus002" , name : "Twor" , tel : "+66 0123456789" , gen : "male"},
-        {id : 3 , cardID : "cus003" , name : "khuat" , tel : "+66 0123456789" , gen : "male"}
+        {id : 3 , cardID : "cus003" , name : "khuat" , tel : "+66 0123456789" , gen : "male"},
+        {id : 4 , cardID : "cus004" , name : "fseff" , tel : "+66 0123456789" , gen : "male"}
     ];
 
     // เก็บข้อมูลปัจจุบันที่แก้ไข (ไม่แก้ไข array customerDetail จริง)
