@@ -156,13 +156,14 @@
 @endsection
 
 @section('script')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     const customerDetail = [
-        {id : 1 , cardID : "cus001" , name : "Foke" , tel : "+66 0123456789" , gen : "male"},
-        {id : 2 , cardID : "cus002" , name : "Twor" , tel : "+66 0123456789" , gen : "male"},
-        {id : 3 , cardID : "cus003" , name : "khuat" , tel : "+66 0123456789" , gen : "male"},
-        {id : 4 , cardID : "cus004" , name : "fseff" , tel : "+66 0123456789" , gen : "male"}
+        {id : 1 , cardID : "cus001" , name : "Foke" , tel : "809519186" , gen : "male"},
+        {id : 2 , cardID : "cus002" , name : "Twor" , tel : "0123456789" , gen : "male"},
+        {id : 3 , cardID : "cus003" , name : "khuat" , tel : "0123456789" , gen : "male"},
+        {id : 4 , cardID : "cus004" , name : "fseff" , tel : "0123456789" , gen : "male"},
+        {id : 5 , cardID : "cus005" , name : "fsrsseff" , tel : "0123456789" , gen : "male"}
     ];
 
     // เก็บข้อมูลปัจจุบันที่แก้ไข (ไม่แก้ไข array customerDetail จริง)

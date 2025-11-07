@@ -65,7 +65,9 @@
     const customer = [
         {id : 1 , cardID : "cus001"},
         {id : 2 , cardID : "cus002"},
-        {id : 3 , cardID : "cus003"}
+        {id : 3 , cardID : "cus003"},
+        {id : 4 , cardID : "cus004"},
+        {id : 5 , cardID : "cus005"}
     ];
 
     document.getElementById('customerSearchForm').addEventListener('submit', function(e) {
