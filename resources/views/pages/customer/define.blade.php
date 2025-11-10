@@ -60,7 +60,6 @@
 @endsection
 
 @section('script')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     const customer = [
         {id : 1 , cardID : "cus001"},
