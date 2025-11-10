@@ -62,15 +62,7 @@
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const customer = [
-        {id : 1 , cardID : "cus001"},
-        {id : 2 , cardID : "cus002"},
-        {id : 3 , cardID : "cus003"},
-        {id : 4 , cardID : "cus004"},
-        {id : 5 , cardID : "cus005"}
-    ];
-
-    document.getElementById('customerSearchForm').addEventListener('submit', function(e) {
+    document.getElementById('customerSearchForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const cardID = document.getElementById('cardID').value.trim();
@@ -86,18 +78,38 @@
             return;
         }
 
-        // ค้นหาใน array customer
-        const foundCustomer = customer.find(c => c.cardID.toLowerCase() === cardID.toLowerCase());
-        
-        if (foundCustomer) {
-            // ถ้าเจอ ให้ redirect ไปหน้า detail พร้อมส่ง cardID
-            window.location.href = `/customer/detail?cardID=${encodeURIComponent(cardID)}`;
-        } else {
-            // ถ้าไม่เจอ แสดง sweetalert
+        try {
+            // เรียก API เพื่อค้นหาลูกค้า
+            const response = await fetch('/api/customers/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ cardID: cardID })
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                // ถ้าเจอ ให้ redirect ไปหน้า detail พร้อมส่ง cardID
+                window.location.href = `/customer/detail?cardID=${encodeURIComponent(cardID)}`;
+            } else {
+                // ถ้าไม่เจอ แสดง sweetalert
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ไม่พบรหัสลูกค้านี้',
+                    text: `ไม่พบรหัสลูกค้า "${cardID}" ในระบบ`,
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        } catch (error) {
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
-                title: 'ไม่พบรหัสลูกค้านี้',
-                text: `ไม่พบรหัสลูกค้า "${cardID}" ในระบบ`,
+                title: 'เกิดข้อผิดพลาด',
+                text: 'ไม่สามารถค้นหาลูกค้าได้ กรุณาลองใหม่อีกครั้ง',
                 confirmButtonText: 'ตกลง',
                 confirmButtonColor: '#dc3545'
             });
@@ -110,4 +122,3 @@
     });
 </script>
 @endsection
-

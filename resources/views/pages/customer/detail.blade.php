@@ -156,19 +156,8 @@
 @endsection
 
 @section('script')
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const customerDetail = [
-        {id : 1 , cardID : "cus001" , name : "Foke" , tel : "809519186" , gen : "male"},
-        {id : 2 , cardID : "cus002" , name : "Twor" , tel : "0123456789" , gen : "male"},
-        {id : 3 , cardID : "cus003" , name : "khuat" , tel : "0123456789" , gen : "male"},
-        {id : 4 , cardID : "cus004" , name : "fseff" , tel : "0123456789" , gen : "male"},
-        {id : 5 , cardID : "cus005" , name : "fsrsseff" , tel : "0123456789" , gen : "male"}
-    ];
-
-    // เก็บข้อมูลปัจจุบันที่แก้ไข (ไม่แก้ไข array customerDetail จริง)
-    let currentCustomerData = null;
-
     // ฟังก์ชันสำหรับดึง cardID จาก URL parameter
     function getCardIDFromURL() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -186,9 +175,8 @@
         genBadge.className = 'badge badge-gender ' + (customer.gen === 'male' ? 'bg-primary' : 'bg-danger');
     }
 
-    // ฟังก์ชันสำหรับโหลดข้อมูลลูกค้าตาม cardID
-    // ดึงข้อมูลจาก array customerDetail ใหม่ทุกครั้ง เพื่อให้ข้อมูล sync กับ array
-    function loadCustomerData() {
+    // ฟังก์ชันสำหรับโหลดข้อมูลลูกค้าจาก API
+    async function loadCustomerData() {
         const cardID = getCardIDFromURL();
         
         if (!cardID) {
@@ -204,11 +192,17 @@
             return;
         }
 
-        // ค้นหาข้อมูลลูกค้าจาก array customerDetail ใหม่ทุกครั้ง
-        // เพื่อให้ข้อมูลที่แสดง sync กับ array เมื่อ array เปลี่ยน
-        const foundCustomer = customerDetail.find(c => c.cardID.toLowerCase() === cardID.toLowerCase());
-        
-        if (!foundCustomer) {
+        try {
+            const response = await fetch(`/api/customers/cardID/${encodeURIComponent(cardID)}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                displayCustomerData(result.data);
+            } else {
+                throw new Error(result.message || 'ไม่พบข้อมูลลูกค้า');
+            }
+        } catch (error) {
+            console.error('Error:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'ไม่พบรหัสลูกค้านี้',
@@ -218,29 +212,35 @@
             }).then(() => {
                 window.location.href = '/customer/define';
             });
-            return;
         }
-
-        // สร้าง copy ใหม่จาก array ทุกครั้งที่โหลด
-        // เพื่อให้ข้อมูล sync กับ array เมื่อ array เปลี่ยน
-        currentCustomerData = JSON.parse(JSON.stringify(foundCustomer));
-        
-        // แสดงข้อมูลจาก array ล่าสุด
-        displayCustomerData(currentCustomerData);
     }
 
     // ฟังก์ชันสำหรับโหลดข้อมูลลงใน form แก้ไข
-    function loadDataToEditForm() {
-        if (currentCustomerData) {
-            document.getElementById('editCardID').value = currentCustomerData.cardID;
-            document.getElementById('editName').value = currentCustomerData.name;
-            document.getElementById('editTel').value = currentCustomerData.tel;
-            document.getElementById('editGen').value = currentCustomerData.gen;
+    async function loadDataToEditForm() {
+        const cardID = getCardIDFromURL();
+        if (!cardID) return;
+
+        try {
+            const response = await fetch(`/api/customers/cardID/${encodeURIComponent(cardID)}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const customer = result.data;
+                document.getElementById('editCardID').value = customer.cardID;
+                document.getElementById('editName').value = customer.name;
+                document.getElementById('editTel').value = customer.tel;
+                document.getElementById('editGen').value = customer.gen;
+            }
+        } catch (error) {
+            console.error('Error loading customer data:', error);
         }
     }
 
     // ฟังก์ชันสำหรับบันทึกข้อมูลที่แก้ไข
-    function saveCustomerData() {
+    async function saveCustomerData() {
+        const cardID = getCardIDFromURL();
+        if (!cardID) return;
+
         const name = document.getElementById('editName').value.trim();
         const tel = document.getElementById('editTel').value.trim();
         const gen = document.getElementById('editGen').value;
@@ -256,27 +256,51 @@
             return;
         }
 
-        // อัปเดตข้อมูลปัจจุบันเท่านั้น (ไม่แก้ไข array customerDetail จริง)
-        // เพื่อให้เมื่อรีเฟรชหน้า ข้อมูลจะกลับเป็นค่าจาก array ตามเดิม
-        currentCustomerData.name = name;
-        currentCustomerData.tel = tel;
-        currentCustomerData.gen = gen;
+        try {
+            const response = await fetch(`/api/customers/cardID/${encodeURIComponent(cardID)}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    name,
+                    tel,
+                    gen
+                })
+            });
 
-        // แสดงข้อมูลที่อัปเดตแล้ว
-        displayCustomerData(currentCustomerData);
+            const result = await response.json();
 
-        // ปิด modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('editCustomerModal'));
-        modal.hide();
+            if (result.success) {
+                // แสดงข้อมูลที่อัปเดตแล้ว
+                displayCustomerData(result.data);
 
-        Swal.fire({
-            icon: 'success',
-            title: 'บันทึกข้อมูลสำเร็จ',
-            text: 'ข้อมูลลูกค้าถูกอัปเดตแล้ว (เมื่อรีเฟรชหน้าข้อมูลจะกลับเป็นค่าจาก array)',
-            confirmButtonText: 'ตกลง',
-            confirmButtonColor: '#28a745',
-            timer: 3000
-        });
+                // ปิด modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editCustomerModal'));
+                modal.hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกข้อมูลสำเร็จ',
+                    text: 'ข้อมูลลูกค้าถูกอัปเดตแล้ว',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#28a745',
+                    timer: 2000
+                });
+            } else {
+                throw new Error(result.message || 'เกิดข้อผิดพลาด');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: error.message || 'ไม่สามารถบันทึกข้อมูลได้',
+                confirmButtonText: 'ตกลง',
+                confirmButtonColor: '#dc3545'
+            });
+        }
     }
 
     // Event Listeners
@@ -300,10 +324,5 @@
             saveCustomerData();
         });
     });
-
-    // เมื่อรีเฟรชหน้า ข้อมูลจะกลับเป็นค่าจาก array customerDetail อัตโนมัติ
-    // เพราะเราไม่แก้ไข array จริง แต่แก้ไขแค่ currentCustomerData เท่านั้น
-    // เมื่อโหลดหน้าใหม่ loadCustomerData() จะดึงข้อมูลจาก array ใหม่เสมอ
 </script>
 @endsection
-
